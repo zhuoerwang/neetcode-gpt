@@ -18,30 +18,31 @@ class Solution:
         #   'dW2':   2D list (gradient w.r.t. W2, rounded to 4 decimals)
         #   'db2':   1D list (gradient w.r.t. b2, rounded to 4 decimals)
         # preprocessing
-        x = np.array(x)
-        W1 = np.array(W1)
-        b1 = np.array(b1)
-        W2 = np.array(W2)
-        b2 = np.array(b2)
-        y_true = np.array(y_true)
+        x = np.array(x) # (D, )
+        W1 = np.array(W1) # (H, D)
+        b1 = np.array(b1) # (H, )
+        W2 = np.array(W2) # (K, H)
+        b2 = np.array(b2) # (K, )
+        y_true = np.array(y_true) # (K, )
 
         # Forward pass
-        z1 = x @ W1.T + b1          # pre-activation layer 1
-        a1 = np.maximum(0, z1)       # ReLU activation
-        z2 = a1 @ W2.T + b2          # output (predictions)
-        loss = np.mean((z2 - y_true) ** 2)
+        z1 = x @ W1.T + b1          # pre-activation layer 1 (H, )
+        a1 = np.maximum(0, z1)       # ReLU activation (H, )
+        z2 = a1 @ W2.T + b2          # output (predictions) (K, )
+        loss = np.mean((z2 - y_true) ** 2) # float
 
         # Backward pass
         n = len(y_true)
-        dz2 = 2 * (z2 - y_true) / n  # dL/dz2
-        dW2 = dz2.reshape(-1, 1) @ a1.reshape(1, -1)  # dL/dW2
-        db2 = dz2                      # dL/db2
+        dz2 = 2.0 * (z2 - y_true) / n  # dL/dz2 (K, )
+        dW2 = dz2.reshape(-1, 1) @ a1.reshape(1, -1)  # dL/dW2 (K, H)
+        db2 = dz2                      # dL/db2 (K, )
 
-        da1 = dz2.reshape(1, -1) @ W2  # dL/da1
-        da1 = da1.flatten()
-        dz1 = da1 * (z1 > 0).astype(float)  # ReLU derivative
-        dW1 = dz1.reshape(-1, 1) @ x.reshape(1, -1)  # dL/dW1
-        db1 = dz1                      # dL/db1
+        da1 = dz2 @ W2 # dL/da1 (1, H)
+        # da1 = dz2.reshape(1, -1) @ W2  # dL/da1 (1, H)
+        # da1 = da1.flatten() # (H, )
+        dz1 = da1 * (z1 > 0).astype(float)  # ReLU derivative (H, )
+        dW1 = dz1.reshape(-1, 1) @ x.reshape(1, -1)  # dL/dW1 (H, D)
+        db1 = dz1                      # dL/db1 (H, )
 
         return {
             'loss': round(float(loss), 4),
